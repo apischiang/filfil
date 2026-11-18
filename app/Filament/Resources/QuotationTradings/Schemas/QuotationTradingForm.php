@@ -2,7 +2,9 @@
 
 namespace App\Filament\Resources\QuotationTradings\Schemas;
 
+use App\Models\QuotationTrading;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -20,18 +22,20 @@ class QuotationTradingForm
                     ->schema([
                         TextInput::make('quotation_number')
                             ->label('Nomor quotation')
-                            ->default('PMJ-QT-' . random_int(100000, 999999))
+                            ->default('PMJ-QT-'.random_int(100000, 999999))
                             ->disabled()
                             ->dehydrated()
                             ->required()
                             ->maxLength(32)
-                            ->unique(Order::class, 'number', ignoreRecord: true),
-                        TextInput::make('slug') //slug untuk akses document secara online
+                            ->unique(QuotationTrading::class, 'quotation_number', ignoreRecord: true),
+                        TextInput::make('public_url')
+                            ->label('Link publik')
                             ->disabled()
-                            ->dehydrated()
-                            ->required()
-                            ->maxLength(255)
-                            ->unique(Product::class, 'slug', ignoreRecord: true),
+                            ->dehydrated(false)
+                            ->copyable()
+                            ->formatStateUsing(fn (?QuotationTrading $record): string => $record
+                                ? route('quotation.public', $record->public_token)
+                                : 'Tersedia setelah quotation disimpan'),
                         Select::make('customer_trading_id')
                             ->label('Customer')
                             ->relationship('customerTrading', 'company')
@@ -64,7 +68,7 @@ class QuotationTradingForm
                             ->required(),
                     ])
                     ->columns(2)
-                    ->columnSpan(['lg' => fn (?QuotationTradingForm $record): int => $record === null ? 3 : 2]),
+                    ->columnSpan(['lg' => fn (?QuotationTrading $record): int => $record === null ? 3 : 2]),
 
                 Section::make('Item quotation')
                     ->schema([
@@ -78,6 +82,13 @@ class QuotationTradingForm
                                     ->maxLength(255),
                                 TextInput::make('description')
                                     ->label('Deskripsi'),
+                                FileUpload::make('image_path')
+                                    ->label('Gambar barang')
+                                    ->image()
+                                    ->disk('public')
+                                    ->directory('quotations/items')
+                                    ->visibility('public')
+                                    ->maxSize(5120),
                                 TextInput::make('quantity')
                                     ->label('Kuantitas')
                                     ->numeric()
@@ -110,7 +121,7 @@ class QuotationTradingForm
                                     ->default(0)
                                     ->required(),
                             ])
-                            ->columnSpan(['lg' => fn (?QuotationTradingForm $record): int => $record === null ? 3 : 2])
+                            ->columnSpan(['lg' => fn (?QuotationTrading $record): int => $record === null ? 3 : 2])
                             ->columns(2)
                             ->minItems(1)
                             ->defaultItems(1)

@@ -15,8 +15,12 @@
         .company { font-size: 27px; font-weight: 700; letter-spacing: -.5px; }
         .document-title { text-align: right; font-size: 20px; font-weight: 700; letter-spacing: 5px; color: #2868d7; }
         .document-copy { margin-top: 4px; font-size: 13px; font-weight: 700; letter-spacing: 2px; }
-        .email { margin: 0 2mm 8mm; font-size: 15px; }
+        .public-access { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 2mm 8mm; }
+        .email { margin: 0 0 4px; font-size: 15px; }
         .email strong { font-weight: 700; }
+        .public-link { margin: 0; font-size: 10px; overflow-wrap: anywhere; }
+        .public-link a { color: #2868d7; text-decoration: none; }
+        .qr-code { display: block; width: 25mm; height: 25mm; flex: 0 0 25mm; }
         .details { display: grid; grid-template-columns: 1fr 1fr; border: 1.5px solid #222; margin-bottom: 0; }
         .customer { min-height: 100px; padding: 10px 12px; border-right: 1px solid #222; font-size: 14px; line-height: 1.45; }
         .customer strong, .meta strong { display: block; }
@@ -52,20 +56,42 @@
         .terms p { margin: 0; white-space: pre-line; line-height: 1.4; }
         .notes { grid-column: 1 / -1; }
         .footer { margin-top: 16px; padding-top: 8px; border-top: 1px solid #999; font-size: 10px; }
-        @page { size: A4 portrait; margin: 0; }
+        .image-sheet { width: 210mm; min-height: 297mm; margin: 0 auto 24px; padding: 17mm 14mm 12mm; background: white; page-break-before: always; break-before: page; }
+        .image-heading { margin: 0 0 12mm; border-bottom: 1.5px solid #222; padding-bottom: 5mm; font-size: 22px; }
+        .image-gallery { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12mm 10mm; }
+        .image-card { margin: 0; break-inside: avoid; page-break-inside: avoid; text-align: center; }
+        .image-card img { display: block; width: 100%; height: 105mm; object-fit: contain; }
+        .image-card figcaption { margin-top: 4mm; font-size: 13px; font-weight: 700; }
+        @page {
+            size: A4 portrait;
+            margin: 10mm 12mm 16mm;
+
+            @bottom-right {
+                content: "Halaman " counter(page) " dari " counter(pages);
+                color: #555;
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 9px;
+            }
+        }
         @media print {
             body { background: white; }
             .toolbar { display: none; }
-            .sheet { width: 210mm; min-height: 297mm; margin: 0; padding: 15mm 12mm 10mm; }
-            tr { break-inside: avoid; }
+            .sheet, .image-sheet { width: auto; min-height: 0; margin: 0; padding: 0; }
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
+            tr { break-inside: avoid; page-break-inside: avoid; }
         }
         @media screen and (max-width: 760px) {
             .toolbar, .sheet { width: 100%; }
             .sheet { min-height: 100vh; padding: 24px 16px; }
+            .image-sheet { width: 100%; min-height: 100vh; padding: 24px 16px; }
+            .image-gallery { grid-template-columns: 1fr; }
+            .image-card img { height: auto; max-height: 110mm; }
             .header { margin: 0 0 40px; gap: 20px; }
             .company { font-size: 19px; }
             .document-title { font-size: 15px; letter-spacing: 3px; }
             .document-copy { font-size: 9px; letter-spacing: 1px; }
+            .qr-code { width: 22mm; height: 22mm; flex-basis: 22mm; }
             .customer, .meta > div { font-size: 11px; }
             .summary { grid-template-columns: 1fr; }
             .summary-note { border-right: 0; border-bottom: 1px solid #222; }
@@ -87,7 +113,13 @@
             </div>
         </header>
 
-        <p class="email"><strong>Email:</strong> ptputramasmuliajaya@gmail.com</p>
+        <section class="public-access">
+            <div>
+                <p class="email"><strong>Email:</strong> ptputramasmuliajaya@gmail.com</p>
+                <p class="public-link"><strong>Link publik:</strong> <a href="{{ $publicUrl }}">{{ $publicUrl }}</a></p>
+            </div>
+            <img class="qr-code" src="{{ $qrCode }}" alt="QR code untuk membuka quotation publik">
+        </section>
 
         <section class="details">
             <div class="customer">
@@ -181,5 +213,18 @@
 
         <footer class="footer">Dokumen ini dibuat secara elektronik dan tidak memerlukan tanda tangan.</footer>
     </main>
+    @if ($quotation->items->contains(fn ($item): bool => filled($item->image_path)))
+        <section class="image-sheet">
+            <h1 class="image-heading">Gambar Barang</h1>
+            <div class="image-gallery">
+                @foreach ($quotation->items->filter(fn ($item): bool => filled($item->image_path)) as $item)
+                    <figure class="image-card">
+                        <img src="{{ Illuminate\Support\Facades\Storage::disk('public')->url($item->image_path) }}" alt="{{ $item->item_name }}">
+                        <figcaption>{{ $item->item_name }}</figcaption>
+                    </figure>
+                @endforeach
+            </div>
+        </section>
+    @endif
 </body>
 </html>

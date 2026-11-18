@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'quotation_trading_id',
     'item_name',
     'description',
+    'image_path',
     'quantity',
     'unit',
     'unit_price',

@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 #[Fillable([
     'quotation_number',
@@ -33,6 +34,13 @@ class QuotationTrading extends Model
 {
     /** @use HasFactory<QuotationTradingFactory> */
     use HasFactory;
+
+    protected static function booted(): void
+    {
+        static::creating(function (QuotationTrading $quotation): void {
+            $quotation->public_token ??= Str::random(48);
+        });
+    }
 
     protected $attributes = [
         'status' => 'draft',
