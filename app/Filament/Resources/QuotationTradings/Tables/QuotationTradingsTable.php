@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\QuotationTradings\Tables;
 
 use App\Models\QuotationTrading;
+use Filament\Actions\Action;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
@@ -56,6 +57,11 @@ class QuotationTradingsTable
             ])
             ->defaultSort('quotation_date', 'desc')
             ->recordActions([
+                Action::make('print')
+                    ->label('Cetak')
+                    ->icon('heroicon-o-printer')
+                    ->url(fn (QuotationTrading $record): string => route('trading.quotation.print', $record))
+                    ->openUrlInNewTab(),
                 EditAction::make(),
             ])
             ->toolbarActions([

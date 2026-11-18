@@ -4,6 +4,8 @@ namespace App\Filament\Resources\QuotationTradings\Pages;
 
 use App\Filament\Resources\QuotationTradings\QuotationTradingResource;
 use App\Models\CustomerTrading;
+use App\Models\QuotationTrading;
+use Filament\Actions\Action;
 use Filament\Actions\DeleteAction;
 use Filament\Resources\Pages\EditRecord;
 
@@ -31,6 +33,11 @@ class EditQuotationTrading extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Action::make('print')
+                ->label('Cetak quotation')
+                ->icon('heroicon-o-printer')
+                ->url(fn (QuotationTrading $record): string => route('trading.quotation.print', $record))
+                ->openUrlInNewTab(),
             DeleteAction::make(),
         ];
     }
